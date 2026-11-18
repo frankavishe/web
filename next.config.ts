@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  * different sites, so a `SameSite=strict` cookie set by the API host would never be sent.
  * Unset locally, where the browser talks to http://localhost:3000/v1 directly.
  */
-const apiProxyTarget = process.env.API_PROXY_TARGET?.replace(/\/+$/, "");
+const apiProxyTarget = process.env.API_PROXY_TARGET?.trim().replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
   /* config options here */

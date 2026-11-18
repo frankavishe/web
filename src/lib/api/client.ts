@@ -7,7 +7,7 @@ import type { ErrorBody, ErrorCode, TokenPair } from "./types";
  * Base URL of the API including /v1. May be relative (`/v1`) when Next.js proxies the API
  * (see `API_PROXY_TARGET` in next.config.ts); relative URLs resolve against the page origin.
  */
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/v1").replace(
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:3000/v1").replace(
   /\/$/,
   "",
 );
@@ -21,7 +21,8 @@ export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:300
 export const API_ORIGIN = resolveApiOrigin(process.env.NEXT_PUBLIC_REALTIME_URL, API_URL);
 
 function resolveApiOrigin(realtimeUrl: string | undefined, apiUrl: string): string {
-  if (realtimeUrl) return realtimeUrl.replace(/\/+$/, "");
+  const trimmed = realtimeUrl?.trim();
+  if (trimmed) return trimmed.replace(/\/+$/, "");
   return URL.canParse(apiUrl) ? new URL(apiUrl).origin : ""; // "" = same origin
 }
 
