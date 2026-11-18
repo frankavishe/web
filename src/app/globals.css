@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
+/*
+ * Chat App palette: deep ink surfaces with a cobalt accent and a warm coral highlight.
+ * Use the semantic utilities (bg-surface, text-muted, bg-accent, ...) instead of raw colours.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f4f5f9;
+  --surface: #ffffff;
+  --surface-2: #eef0f6;
+  --border: #dde1ec;
+  --fg: #151a2d;
+  --muted: #5f6782;
+  --accent: #3550d6;
+  --accent-fg: #ffffff;
+  --accent-soft: #e4e9ff;
+  --highlight: #f06c4e;
+  --danger: #c63b3b;
+  --danger-soft: #fdeceb;
+  --success: #1f8a5b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0d1020;
+    --surface: #151a2d;
+    --surface-2: #1d2340;
+    --border: #2a3152;
+    --fg: #e8eaf4;
+    --muted: #9aa1bd;
+    --accent: #7088ff;
+    --accent-fg: #0d1020;
+    --accent-soft: #232c55;
+    --highlight: #ff8a6f;
+    --danger: #ff7272;
+    --danger-soft: #3a1d24;
+    --success: #4cc790;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-highlight: var(--highlight);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
