@@ -3,13 +3,27 @@ import { useAuthStore } from "@/stores/auth";
 import type { paths } from "./schema";
 import type { ErrorBody, ErrorCode, TokenPair } from "./types";
 
+/**
+ * Base URL of the API including /v1. May be relative (`/v1`) when Next.js proxies the API
+ * (see `API_PROXY_TARGET` in next.config.ts); relative URLs resolve against the page origin.
+ */
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/v1").replace(
   /\/$/,
   "",
 );
 
-/** Origin of the API (no /v1), used for the Socket.IO connection. */
-export const API_ORIGIN = new URL(API_URL).origin;
+/**
+ * Origin of the API (no /v1), used for the Socket.IO connection. WebSockets bypass the
+ * rewrite proxy and connect to the API directly (they authenticate with the access token,
+ * not the cookie), so set NEXT_PUBLIC_REALTIME_URL whenever API_URL is relative.
+ * Never throws at import time: this module is also evaluated during build and SSR.
+ */
+export const API_ORIGIN = resolveApiOrigin(process.env.NEXT_PUBLIC_REALTIME_URL, API_URL);
+
+function resolveApiOrigin(realtimeUrl: string | undefined, apiUrl: string): string {
+  if (realtimeUrl) return realtimeUrl.replace(/\/+$/, "");
+  return URL.canParse(apiUrl) ? new URL(apiUrl).origin : ""; // "" = same origin
+}
 
 export class ApiError extends Error {
   constructor(

@@ -22,6 +22,22 @@ npm run dev                   # http://localhost:3001
 The API must allow this origin: set `WEB_ORIGIN=http://localhost:3001` in the API's `.env`.
 The refresh token is kept in an HttpOnly cookie set by the API, and the access token only in memory.
 
+## Production (Render)
+
+The web app is deployed by the Blueprint in the api repo (`render.yaml`); the full guide is in
+`../api/README.md` under **Deploy to Render**. In production the browser never calls the API host
+directly for REST:
+
+| Variable                   | Example                         | Purpose                                                       |
+| -------------------------- | ------------------------------- | ------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`      | `/v1`                           | Same-origin REST calls                                        |
+| `API_PROXY_TARGET`         | `https://chat-api.onrender.com` | `next.config.ts` rewrites `/v1/*` to the API                  |
+| `NEXT_PUBLIC_REALTIME_URL` | `https://chat-api.onrender.com` | Socket.IO connects to the API directly (bypasses the proxy)   |
+
+The proxy keeps the refresh cookie first-party. Two `*.onrender.com` hosts are different sites,
+so the API's `SameSite=strict` cookie would otherwise never be sent. All three values are read at
+build time, so redeploy after changing them.
+
 ## Tests
 
 ```bash
