@@ -221,6 +221,199 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * @description Publish this device's Signal public keys. The first upload must include
+         *     `signedPreKey` (otherwise 400 `KEYS_NOT_UPLOADED`); later calls may only top up
+         *     `preKeys` or rotate `signedPreKey`. Sending a different `identityKey` replaces
+         *     all of the device's keys.
+         */
+        put: operations["uploadKeys"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/keys/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getKeyCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{userId}/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description One prekey bundle per active device of the user that has uploaded keys.
+         *     Each call consumes one one-time prekey per returned device (`preKey` is null
+         *     when none are left). When `userId` is the caller, the calling device is left out.
+         */
+        get: operations["getUserKeys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listConversations"];
+        put?: never;
+        /**
+         * @description `direct` is idempotent: returns the existing conversation with that peer (200)
+         *     or creates it (201). `group` always creates a new group with the caller as admin.
+         *     Group names and other metadata are never sent here; they travel end-to-end
+         *     encrypted inside messages.
+         */
+        post: operations["createConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversations/{conversationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getConversation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversations/{conversationId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Group admins only. All members (old and new) receive `conversation:updated`. */
+        post: operations["addMembers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/conversations/{conversationId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * @description Groups only. Admins may remove anyone; any member may remove themselves (leave).
+         *     If the last admin leaves, the longest-standing member becomes admin.
+         *     Remaining members get `conversation:updated`; the removed user gets
+         *     `conversation:updated` with `removed: true`.
+         */
+        delete: operations["removeMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Deliver one ciphertext per recipient device. `envelopes` must cover exactly the
+         *     active, key-holding devices of every other member plus the sender's own other
+         *     devices. Otherwise nothing is stored and the server answers 409 `DEVICE_MISMATCH`
+         *     with `details` shaped as `DeviceMismatch`. Each stored envelope is pushed as
+         *     `envelope:new` to its device.
+         */
+        post: operations["sendMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/envelopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Envelopes waiting for this device, oldest first. */
+        get: operations["listEnvelopes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/envelopes/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Delete envelopes this device has processed. Ids that are unknown or belong to another device are ignored. */
+        post: operations["ackEnvelopes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -295,11 +488,142 @@ export interface components {
         };
         Error: {
             /** @enum {string} */
-            code: "VALIDATION_FAILED" | "INVALID_PHONE" | "INVALID_CODE" | "CODE_EXPIRED" | "TOO_MANY_ATTEMPTS" | "ACCOUNT_NOT_FOUND" | "USER_NOT_FOUND" | "DEVICE_NOT_FOUND" | "SESSION_REVOKED" | "UNAUTHORIZED" | "RATE_LIMITED" | "FILE_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "INTERNAL";
+            code: "VALIDATION_FAILED" | "INVALID_PHONE" | "INVALID_CODE" | "CODE_EXPIRED" | "TOO_MANY_ATTEMPTS" | "ACCOUNT_NOT_FOUND" | "USER_NOT_FOUND" | "DEVICE_NOT_FOUND" | "SESSION_REVOKED" | "UNAUTHORIZED" | "RATE_LIMITED" | "FILE_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "CONVERSATION_NOT_FOUND" | "NOT_A_MEMBER" | "FORBIDDEN" | "DEVICE_MISMATCH" | "KEYS_NOT_UPLOADED" | "GROUP_TOO_LARGE" | "PAYLOAD_TOO_LARGE" | "INTERNAL";
             message: string;
             details?: {
                 [key: string]: unknown;
             };
+        };
+        Base64: string;
+        PublicPreKey: {
+            keyId: number;
+            /** @description 33-byte Curve25519 public key (0x05 prefix). */
+            publicKey: components["schemas"]["Base64"];
+        };
+        SignedPreKey: {
+            keyId: number;
+            publicKey: components["schemas"]["Base64"];
+            /** @description 64-byte XEdDSA signature of publicKey by the identity key. */
+            signature: components["schemas"]["Base64"];
+        };
+        UploadKeysBody: {
+            registrationId: number;
+            identityKey: components["schemas"]["Base64"];
+            signedPreKey?: components["schemas"]["SignedPreKey"];
+            preKeys: components["schemas"]["PublicPreKey"][];
+        };
+        KeyCount: {
+            count: number;
+        };
+        DeviceBundle: {
+            /** Format: uuid */
+            deviceId: string;
+            registrationId: number;
+            identityKey: components["schemas"]["Base64"];
+            signedPreKey: components["schemas"]["SignedPreKey"];
+            preKey: components["schemas"]["PublicPreKey"] | null;
+        };
+        UserKeys: {
+            /** Format: uuid */
+            userId: string;
+            devices: components["schemas"]["DeviceBundle"][];
+        };
+        /** @enum {string} */
+        ConversationType: "direct" | "group";
+        /** @enum {string} */
+        MemberRole: "admin" | "member";
+        ConversationMember: {
+            /** Format: uuid */
+            userId: string;
+            role: components["schemas"]["MemberRole"];
+            /** Format: date-time */
+            joinedAt: string;
+        };
+        Conversation: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ConversationType"];
+            /** Format: date-time */
+            createdAt: string;
+            members: components["schemas"]["ConversationMember"][];
+        };
+        CreateDirectConversationBody: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "direct";
+            /** Format: uuid */
+            peerId: string;
+        };
+        CreateGroupConversationBody: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "group";
+            /** @description Other members; the caller is added as admin. Groups hold at most 64 members. */
+            memberIds: string[];
+        };
+        CreateConversationBody: components["schemas"]["CreateDirectConversationBody"] | components["schemas"]["CreateGroupConversationBody"];
+        AddMembersBody: {
+            userIds: string[];
+        };
+        /**
+         * @description prekey = PreKeySignalMessage (starts a session), whisper = SignalMessage.
+         * @enum {string}
+         */
+        EnvelopeType: "prekey" | "whisper";
+        OutgoingEnvelope: {
+            /** Format: uuid */
+            deviceId: string;
+            type: components["schemas"]["EnvelopeType"];
+            /** @description Opaque Signal message, at most 64 KiB before base64. */
+            ciphertext: components["schemas"]["Base64"];
+        };
+        SendMessageBody: {
+            /** Format: uuid */
+            conversationId: string;
+            /** @description Empty only when no other device needs a copy (for example, a note to self with one device). */
+            envelopes: components["schemas"]["OutgoingEnvelope"][];
+        };
+        SendMessageResult: {
+            /** Format: date-time */
+            serverTimestamp: string;
+        };
+        DeviceRef: {
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            deviceId: string;
+        };
+        DeviceMismatch: {
+            /** @description Active devices with no envelope; fetch their bundles and resend. */
+            missingDevices: components["schemas"]["DeviceRef"][];
+            /** @description Envelopes addressed to devices that are gone or not in the conversation; drop those sessions. */
+            staleDevices: components["schemas"]["DeviceRef"][];
+        };
+        DeviceMismatchError: components["schemas"]["Error"] & {
+            /** @constant */
+            code?: "DEVICE_MISMATCH";
+            details: components["schemas"]["DeviceMismatch"];
+        };
+        Envelope: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: uuid */
+            senderUserId: string;
+            /** Format: uuid */
+            senderDeviceId: string;
+            type: components["schemas"]["EnvelopeType"];
+            ciphertext: components["schemas"]["Base64"];
+            /** Format: date-time */
+            serverTimestamp: string;
+        };
+        AckBody: {
+            ids: string[];
         };
     };
     responses: {
@@ -333,7 +657,9 @@ export interface components {
             };
         };
     };
-    parameters: never;
+    parameters: {
+        ConversationId: string;
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;
@@ -793,6 +1119,301 @@ export interface operations {
                 };
             };
             429: components["responses"]["RateLimited"];
+        };
+    };
+    uploadKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadKeysBody"];
+            };
+        };
+        responses: {
+            /** @description Keys stored. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getKeyCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unused one-time prekeys left for this device. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KeyCount"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getUserKeys: {
+        parameters: {
+            query?: {
+                /** @description Only return bundles for these devices (repeatable). */
+                deviceId?: string[];
+            };
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bundles. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserKeys"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listConversations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conversations the caller is a member of, newest first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Conversation"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    createConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConversationBody"];
+            };
+        };
+        responses: {
+            /** @description Existing direct conversation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            /** @description Created. Other members receive `conversation:updated`. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["Error"];
+        };
+    };
+    getConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The conversation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["Error"];
+        };
+    };
+    addMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddMembersBody"];
+            };
+        };
+        responses: {
+            /** @description Updated conversation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+        };
+    };
+    removeMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: components["parameters"]["ConversationId"];
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+        };
+    };
+    sendMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageBody"];
+            };
+        };
+        responses: {
+            /** @description Stored and pushed to online devices. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendMessageResult"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            /** @description Device list out of date (`DEVICE_MISMATCH`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceMismatchError"];
+                };
+            };
+            413: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listEnvelopes: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pending envelopes. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    ackEnvelopes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AckBody"];
+            };
+        };
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
         };
     };
 }
