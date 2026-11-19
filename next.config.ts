@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // The `/v1/*` rewrite proxy aborts upstream requests after 30s by default. The free-tier
+    // chat-api sleeps when idle and takes ~1 min to wake, so the first call (usually
+    // /auth/refresh) would die with "socket hang up". Give it room to cold-start.
+    proxyTimeout: 120_000,
+  },
   turbopack: {
     rules: {
       "*.css": {
