@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/shell/Sidebar";
 import { api, call, refreshSession } from "@/lib/api/client";
 import type { PublicUser } from "@/lib/api/types";
 import { errorMessage } from "@/lib/errors";
+import { syncLocalSession } from "@/lib/local-data";
 import { connectRealtime } from "@/lib/realtime/socket";
 import { useAuthStore } from "@/stores/auth";
 
@@ -22,6 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const status = useAuthStore((s) => s.status);
   const user = useAuthStore((s) => s.user);
+  const deviceId = useAuthStore((s) => s.deviceId);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
@@ -53,7 +55,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     if (user && !user.profileComplete && pathname !== PROFILE_PATH) router.replace(PROFILE_PATH);
   }, [user, pathname, router]);
 
-  // 4. Realtime.
+  // 4. Encrypted local data: keys for this device on sign-in, wiped on sign-out.
+  useEffect(() => {
+    syncLocalSession(status, deviceId).catch((e: unknown) => {
+      // Offline or server trouble: keys are uploaded on the next start.
+      console.warn("local session:", e);
+    });
+  }, [status, deviceId]);
+
+  // 5. Realtime.
   useEffect(() => {
     if (status !== "signedIn") return;
     return connectRealtime({

@@ -205,6 +205,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Public profiles by id, used to name group members who aren't contacts.
+         *     Only users the caller may see are returned: the caller, their contacts and anyone
+         *     who shares a conversation with them. Other ids are left out without an error.
+         */
+        get: operations["getUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/lookup": {
         parameters: {
             query?: never;
@@ -488,7 +509,7 @@ export interface components {
         };
         Error: {
             /** @enum {string} */
-            code: "VALIDATION_FAILED" | "INVALID_PHONE" | "INVALID_CODE" | "CODE_EXPIRED" | "TOO_MANY_ATTEMPTS" | "ACCOUNT_NOT_FOUND" | "USER_NOT_FOUND" | "DEVICE_NOT_FOUND" | "SESSION_REVOKED" | "UNAUTHORIZED" | "RATE_LIMITED" | "FILE_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "CONVERSATION_NOT_FOUND" | "NOT_A_MEMBER" | "FORBIDDEN" | "DEVICE_MISMATCH" | "KEYS_NOT_UPLOADED" | "GROUP_TOO_LARGE" | "PAYLOAD_TOO_LARGE" | "INTERNAL";
+            code: "VALIDATION_FAILED" | "INVALID_PHONE" | "INVALID_CODE" | "CODE_EXPIRED" | "TOO_MANY_ATTEMPTS" | "ACCOUNT_NOT_FOUND" | "USER_NOT_FOUND" | "NOT_FOUND" | "DEVICE_NOT_FOUND" | "SESSION_REVOKED" | "UNAUTHORIZED" | "RATE_LIMITED" | "FILE_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "CONVERSATION_NOT_FOUND" | "NOT_A_MEMBER" | "FORBIDDEN" | "DEVICE_MISMATCH" | "KEYS_NOT_UPLOADED" | "GROUP_TOO_LARGE" | "PAYLOAD_TOO_LARGE" | "INTERNAL";
             message: string;
             details?: {
                 [key: string]: unknown;
@@ -1087,6 +1108,32 @@ export interface operations {
                     "application/json": components["schemas"]["PublicUser"][];
                 };
             };
+        };
+    };
+    getUsers: {
+        parameters: {
+            query: {
+                /** @description User ids (repeatable, 1-64). */
+                id: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The visible users among the requested ids, in no particular order. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicUser"][];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Unauthorized"];
+            429: components["responses"]["RateLimited"];
         };
     };
     lookupUser: {
